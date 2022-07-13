@@ -1,6 +1,6 @@
 package by.andrew.entity;
 
-public class Accaunt {
+public class Account {
     private String cookie;
     private String login;
     private String password;
@@ -11,7 +11,7 @@ public class Accaunt {
     private int region;
     private int gender;
 
-    public Accaunt(String login, String password) {
+    public Account(String login, String password) {
         this.login = login;
         this.password = password;
     }

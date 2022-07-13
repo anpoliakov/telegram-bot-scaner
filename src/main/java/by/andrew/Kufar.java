@@ -1,6 +1,6 @@
 package by.andrew;
 
-import by.andrew.entity.Accaunt;
+import by.andrew.entity.Account;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -18,23 +18,23 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class Kufar {
-    private ArrayList <Accaunt> accaunts = new ArrayList<>();
+    private ArrayList <Account> accounts = new ArrayList<>();
     CloseableHttpClient httpClient = HttpClients.createDefault();
 
     public boolean login(String login, String password){
         boolean isLoginSuccessful = false;
 
-        Accaunt accaunt = executeAuthorization(login, password);
-        if(accaunt != null){
+        Account account = executeAuthorization(login, password);
+        if(account != null){
             isLoginSuccessful = true;
         }
 
         return isLoginSuccessful;
     }
 
-    private Accaunt executeAuthorization(String login, String password){
+    private Account executeAuthorization(String login, String password){
 
-        Accaunt accaunt = new Accaunt(login, password);
+        Account account = new Account(login, password);
         HttpPost httpPost = new HttpPost(Constants.AUTH);
 
         try {
@@ -52,8 +52,8 @@ public class Kufar {
             HttpResponse response = httpClient.execute(httpPost);
 
             if(response.getStatusLine().getStatusCode() == 200){
-                setCookies(accaunt,response);
-                setAllInfoAccaunt(accaunt);
+                setCookies(account,response);
+                setAllInfoAccaunt(account);
             }
 
         } catch (UnsupportedEncodingException e) {
@@ -64,10 +64,10 @@ public class Kufar {
             e.printStackTrace();
         }
 
-        return accaunt;
+        return account;
     }
 
-    private void setCookies(Accaunt accaunt, HttpResponse response){
+    private void setCookies(Account account, HttpResponse response){
         Header[] headers = response.getHeaders("Set-Cookie");
         StringBuilder builder = new StringBuilder();
 
@@ -75,11 +75,11 @@ public class Kufar {
             builder.append(header.getValue());
         }
 
-        accaunt.setCookie(builder.toString());
+        account.setCookie(builder.toString());
     }
 
-    private void setAllInfoAccaunt(Accaunt accaunt){
-        String infoAccauntJson = executeRequestAccauntInfo(accaunt);
+    private void setAllInfoAccaunt(Account account){
+        String infoAccauntJson = executeRequestAccauntInfo(account);
         System.out.println(infoAccauntJson);
         try {
             Object parse = new JSONParser().parse(infoAccauntJson);
@@ -94,7 +94,7 @@ public class Kufar {
         }
     }
 
-    private String executeRequestAccauntInfo(Accaunt accaunt){
+    private String executeRequestAccauntInfo(Account account){
         String responseJson = null;
 
         HttpGet httpGet = new HttpGet(Constants.ACCAUNT_INFO);
@@ -104,7 +104,7 @@ public class Kufar {
         httpGet.addHeader("User-Agent","Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
         httpGet.addHeader("Accept", "*/*");
         httpGet.addHeader("Connection", "keep-alive");
-        httpGet.addHeader("Cookie", accaunt.getCookie());
+        httpGet.addHeader("Cookie", account.getCookie());
 
         try {
             HttpResponse response = httpClient.execute(httpGet);
