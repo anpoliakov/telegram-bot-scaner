@@ -1,17 +1,30 @@
 package by.andrew;
 
-public class DataBase {
-    private Arra
+import by.andrew.entity.User;
 
-    private static DataBase instance = null;
+import java.util.HashMap;
+
+public class DataBase {
+    private HashMap <Long, User> dataBaseUsers = new HashMap <>();
+
+    private static DataBase INSTANCE = null;
     public DataBase() {}
 
+    //TODO: Улчучшить instance
     public static DataBase getInstance(){
-        if(instance == null){
-            instance = new DataBase();
-            return instance;
+        if(INSTANCE == null){
+            INSTANCE = new DataBase();
+            return INSTANCE;
         }else{
-            return instance;
+            return INSTANCE;
         }
+    }
+
+    public User getUserByID(Long user_id){
+        return dataBaseUsers.get(user_id);
+    }
+
+    public void addUserInDataBase(User user){
+        dataBaseUsers.put(user.getUser_id(), user);
     }
 }
