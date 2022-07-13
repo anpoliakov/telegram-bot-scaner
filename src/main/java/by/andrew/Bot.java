@@ -10,48 +10,66 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.Optional;
 
 public class Bot extends TelegramLongPollingBot {
-    private boolean enteringLoginPassword = false;
+    private boolean isActiveInputLogin = false;
 
     @Override
     public void onUpdateReceived(Update update) {
-        if(update.hasMessage()){
+        if(update.hasMessage() && isActiveInputLogin == false){
             handleMessage(update.getMessage());
+        }
+
+        if(update.hasMessage() && isActiveInputLogin == true){
+            handleEnterLogin(update.getMessage());
         }
     }
 
     @SneakyThrows
     private void handleMessage(Message message){
         if(message.hasText() && message.hasEntities()){
-            enteringLoginPassword = false;
+            String command = getCommand(message);
 
-            //Получаю первую команду прописанную боту
-            Optional<MessageEntity> commands = message.getEntities().stream()
-                    .filter(e -> "bot_command".equals(e.getType())).findFirst();
-
-            if(commands.isPresent()){
-                String command = message.getText().
-                        substring(commands.get().getOffset(), commands.get().getLength());
-
-                switch (command){
+            switch (command){
                     case "/add_account":
-                        enteringLoginPassword = true;
+                        isActiveInputLogin = true;
                         execute(
                             SendMessage.builder().
                                 chatId(message.getChatId().toString()).
                                 text(Constants.ENTER_LOGIN_AND_PASSWORD_RU).
                                 build());
                     break;
-                }
             }
         }
+    }
 
-        //Если пользователь вводит логин и пароль
-        if(message.hasText() && enteringLoginPassword == true && !message.hasEntities()){
+    private void handleEnterLogin(Message message){
+        if(message.hasText()){
+            System.out.println("В обработчик login & password:" + message.getText());
+            isActiveInputLogin = false;
+
             String[] data = message.getText().split(" ");
-            System.out.println(data[0]);
-            System.out.println(data[1]);
-            enteringLoginPassword = false;
+            String login = data[0];
+            String password = data[1];
+
+            System.out.println("Введён логин:" + login);
+            System.out.println("Введён пароль:" + password);
+
+            Kufar kufar = new Kufar();
+            kufar.login(login, password);
         }
+    }
+
+    //Подготавлявает команду переданную в чат
+    private String getCommand(Message message){
+        String command = null;
+        Optional<MessageEntity> commands = message.getEntities().
+                stream().filter(e -> "bot_command".equals(e.getType())).findFirst();
+
+        if (commands.isPresent()) {
+            command = message.getText().substring(commands.get().getOffset(), commands.get().getLength());
+        }
+
+        //TODO: случай когда команда не найдена и возвращаем null
+        return command;
     }
 
     @Override
