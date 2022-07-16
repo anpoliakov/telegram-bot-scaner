@@ -15,36 +15,22 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
-import java.util.ArrayList;
 
 public class Kufar {
-    private ArrayList <Account> accounts = new ArrayList<>();
-    CloseableHttpClient httpClient = HttpClients.createDefault();
+    private CloseableHttpClient httpClient = HttpClients.createDefault();
 
     public boolean login(String login, String password){
-        boolean isLoginSuccessful = false;
-
-        Account account = executeAuthorization(login, password);
-        if(account != null){
-            isLoginSuccessful = true;
-        }
-
-        return isLoginSuccessful;
-    }
-
-    private Account executeAuthorization(String login, String password){
-
-        Account account = new Account(login, password);
         HttpPost httpPost = new HttpPost(Constants.AUTH);
+        boolean isLoginSuccessful = false;
 
         try {
             StringEntity params =
                 new StringEntity(
-                        "{\"login\":\"" + login + "\"," +
-                        "\"password\":\"" + password + "\"," +
-                        "\"recaptcha_platform\":\"web\"," +
-                        "\"recaptcha_secret_version\":\"v1\"," +
-                        "\"recaptcha_user_response\":\" \"}"
+                    "{\"login\":\"" + login + "\"," +
+                    "\"password\":\"" + password + "\"," +
+                    "\"recaptcha_platform\":\"web\"," +
+                    "\"recaptcha_secret_version\":\"v1\"," +
+                    "\"recaptcha_user_response\":\" \"}"
                 );
 
             httpPost.setEntity(params);
@@ -52,8 +38,10 @@ public class Kufar {
             HttpResponse response = httpClient.execute(httpPost);
 
             if(response.getStatusLine().getStatusCode() == 200){
-                setCookies(account,response);
-                setAllInfoAccaunt(account);
+                Account account = new Account(login,password);
+                setCookie(account,response);
+                setInformationAccount(account);
+                isLoginSuccessful = true;
             }
 
         } catch (UnsupportedEncodingException e) {
@@ -64,10 +52,11 @@ public class Kufar {
             e.printStackTrace();
         }
 
-        return account;
+        return isLoginSuccessful;
     }
 
-    private void setCookies(Account account, HttpResponse response){
+    //Получение кук для аккаунта
+    private void setCookie(Account account, HttpResponse response){
         Header[] headers = response.getHeaders("Set-Cookie");
         StringBuilder builder = new StringBuilder();
 
@@ -78,17 +67,24 @@ public class Kufar {
         account.setCookie(builder.toString());
     }
 
-    private void setAllInfoAccaunt(Account account){
+    //Получение пользовательской информации об куфар-аккаунте
+    private void setInformationAccount(Account account){
         String infoAccauntJson = executeRequestAccauntInfo(account);
-        System.out.println(infoAccauntJson);
+        System.out.println("Information from Accaunt:" + infoAccauntJson);
         try {
             Object parse = new JSONParser().parse(infoAccauntJson);
-            JSONObject jo = (JSONObject) parse;
-//            String account_id = (String) jo.get("account_id");
-//            String area = (String) jo.get("area");
-//            String date_of_birth = (String) jo.get("date_of_birth");
-//            String email = (String) jo.get("email");
-//            String name = (String) jo.get("name");
+            JSONObject jsonObj = (JSONObject) parse;
+
+//            System.out.println((Long) jsonObj.get("account_id"));
+            System.out.println((String) jsonObj.get("name"));
+            System.out.println((String) jsonObj.get("phone"));
+            System.out.println((String) jsonObj.get("token"));
+
+//            account.setAccaunt_id((Long) jsonObj.get("account_id"));
+//            account.setName((String) jsonObj.get("name"));
+//            account.setPhone((String) jsonObj.get("phone"));
+//            account.setToken((String) jsonObj.get("token"));
+
         } catch (ParseException e) {
             e.printStackTrace();
         }

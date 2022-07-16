@@ -4,12 +4,10 @@ public class Account {
     private String cookie;
     private String login;
     private String password;
+    private Long accaunt_id;
     private String name;
     private String phone;
     private String token;
-    private String lastLogin;
-    private int region;
-    private int gender;
 
     public Account(String login, String password) {
         this.login = login;
@@ -24,59 +22,35 @@ public class Account {
         this.cookie = cookie;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Long getAccaunt_id() {
+        return accaunt_id;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public void setRegion(int region) {
-        this.region = region;
-    }
-
-    public void setGender(int gender) {
-        this.gender = gender;
-    }
-
-    public void setLastLogin(String lastLogin) {
-        this.lastLogin = lastLogin;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public String getPassword() {
-        return password;
+    public void setAccaunt_id(Long accaunt_id) {
+        this.accaunt_id = accaunt_id;
     }
 
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getPhone() {
         return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getToken() {
         return token;
     }
 
-    public String getLastLogin() {
-        return lastLogin;
-    }
-
-    public int getRegion() {
-        return region;
-    }
-
-    public int getGender() {
-        return gender;
+    public void setToken(String token) {
+        this.token = token;
     }
 }

@@ -21,6 +21,7 @@ public class DataBase {
     }
 
     public User getUserByID(Long user_id){
+        //может быть null
         return dataBaseUsers.get(user_id);
     }
 
