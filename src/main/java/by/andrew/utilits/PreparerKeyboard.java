@@ -1,4 +1,4 @@
-package by.andrew.entity;
+package by.andrew.utilits;
 
 import by.andrew.StatusBot;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -11,7 +11,7 @@ import java.util.List;
 //класс который предоставляет нужную клавиатуру взависимости от состояния программы
 public class PreparerKeyboard {
 
-    public ReplyKeyboardMarkup getKeyboardByState(StatusBot statusBot){
+    public ReplyKeyboardMarkup getKeyboardByStatus(StatusBot statusBot){
         ReplyKeyboardMarkup replyKeyboard = null;
 
         switch (statusBot){

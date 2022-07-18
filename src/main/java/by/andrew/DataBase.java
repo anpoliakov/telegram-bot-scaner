@@ -1,5 +1,6 @@
 package by.andrew;
 
+import by.andrew.entity.Account;
 import by.andrew.entity.User;
 
 import java.util.HashMap;
@@ -27,5 +28,17 @@ public class DataBase {
 
     public void addUserInDataBase(User user){
         dataBaseUsers.put(user.getUser_id(), user);
+    }
+
+    public boolean addAccountForUser(Long id_user, Account account){
+        boolean flag = false;
+        if(dataBaseUsers.containsKey(id_user)){
+            User user = dataBaseUsers.get(id_user);
+            user.addAccount(account);
+            dataBaseUsers.replace(id_user,user);
+            flag = true;
+        }
+
+        return flag;
     }
 }

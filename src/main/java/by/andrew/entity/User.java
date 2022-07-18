@@ -25,7 +25,7 @@ public class User {
         return accounts;
     }
 
-    public void setAccounts(Account account) {
+    public void addAccount(Account account) {
         accounts.add(account);
     }
 

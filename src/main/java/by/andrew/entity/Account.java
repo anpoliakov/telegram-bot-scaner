@@ -4,7 +4,6 @@ public class Account {
     private String cookie;
     private String login;
     private String password;
-    private Long accaunt_id;
     private String name;
     private String phone;
     private String token;
@@ -20,14 +19,6 @@ public class Account {
 
     public void setCookie(String cookie) {
         this.cookie = cookie;
-    }
-
-    public Long getAccaunt_id() {
-        return accaunt_id;
-    }
-
-    public void setAccaunt_id(Long accaunt_id) {
-        this.accaunt_id = accaunt_id;
     }
 
     public String getName() {
@@ -52,5 +43,13 @@ public class Account {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "name='" + name + '\'' +
+                ", phone='" + phone + '\'' +
+                '}';
     }
 }

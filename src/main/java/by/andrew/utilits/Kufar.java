@@ -1,5 +1,6 @@
-package by.andrew;
+package by.andrew.utilits;
 
+import by.andrew.Constants;
 import by.andrew.entity.Account;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -16,12 +17,13 @@ import org.json.simple.parser.ParseException;
 
 import java.io.*;
 
+//static класс для полчения кук и регистрации аккаунта
 public class Kufar {
     private CloseableHttpClient httpClient = HttpClients.createDefault();
 
-    public boolean login(String login, String password){
+    public Account login(String login, String password){
         HttpPost httpPost = new HttpPost(Constants.AUTH);
-        boolean isLoginSuccessful = false;
+        Account account = null;
 
         try {
             StringEntity params =
@@ -38,10 +40,9 @@ public class Kufar {
             HttpResponse response = httpClient.execute(httpPost);
 
             if(response.getStatusLine().getStatusCode() == 200){
-                Account account = new Account(login,password);
+                account = new Account(login,password);
                 setCookie(account,response);
                 setInformationAccount(account);
-                isLoginSuccessful = true;
             }
 
         } catch (UnsupportedEncodingException e) {
@@ -52,7 +53,7 @@ public class Kufar {
             e.printStackTrace();
         }
 
-        return isLoginSuccessful;
+        return account;
     }
 
     //Получение кук для аккаунта
@@ -75,16 +76,9 @@ public class Kufar {
             Object parse = new JSONParser().parse(infoAccauntJson);
             JSONObject jsonObj = (JSONObject) parse;
 
-//            System.out.println((Long) jsonObj.get("account_id"));
-            System.out.println((String) jsonObj.get("name"));
-            System.out.println((String) jsonObj.get("phone"));
-            System.out.println((String) jsonObj.get("token"));
-
-//            account.setAccaunt_id((Long) jsonObj.get("account_id"));
-//            account.setName((String) jsonObj.get("name"));
-//            account.setPhone((String) jsonObj.get("phone"));
-//            account.setToken((String) jsonObj.get("token"));
-
+            account.setName((String) jsonObj.get("name"));
+            account.setPhone((String) jsonObj.get("phone"));
+            account.setToken((String) jsonObj.get("token"));
         } catch (ParseException e) {
             e.printStackTrace();
         }
