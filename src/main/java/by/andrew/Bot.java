@@ -12,6 +12,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.ArrayList;
+
 public class Bot extends TelegramLongPollingBot {
     //Содержит текущее состояние бота у пользователя
     private StatusBot CURRENT_STATUS = StatusBot.START;
@@ -19,6 +21,8 @@ public class Bot extends TelegramLongPollingBot {
     private PreparerKeyboard preparerKeyboard = new PreparerKeyboard();
     //База данных (в будущем SQL) для хранения всей необходимой информации (пользователи и их аккаунты)
     private DataBase db = DataBase.getInstance();
+    //Обьект для работы с сайтом kufar
+    private Kufar kufar = new Kufar();
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -65,6 +69,23 @@ public class Bot extends TelegramLongPollingBot {
                 case "аккаунты":
                     CURRENT_STATUS = StatusBot.SHOW_ACC;
                 break;
+
+                case "объявления":
+                    CURRENT_STATUS = StatusBot.SHOW_ADS;
+                break;
+
+                case "добавить объявление":
+                    //TODO: добавить объявление - в разработке, потом поменять статус на  StatusBot.CREATE_ADS;
+                    CURRENT_STATUS = StatusBot.DEFAULT;
+                    SendMessage answerAddAds = new SendMessage();
+                    answerAddAds.setChatId(String.valueOf(message.getChatId()));
+                    answerAddAds.setText(">Раздел 'Добавить объявление' в разработке<");
+                    try {
+                        execute(answerAddAds);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                 break;
 
                 case "отмена":
                     CURRENT_STATUS = StatusBot.DEFAULT;
@@ -143,6 +164,35 @@ public class Bot extends TelegramLongPollingBot {
                     } catch (TelegramApiException e) {
                         e.printStackTrace();
                     }
+                break;
+
+                case SHOW_ADS:
+                    //показывает обьявления пользователя
+                    Long id_user = update.getMessage().getFrom().getId();
+                    User user = db.getUserByID(id_user);
+
+                    SendMessage answerShowAds = new SendMessage();
+                    answerShowAds.setChatId(id_user.toString());
+                    String textAds = "Для работы с объявлениями - подключите аккаунты";
+
+                    //Если пользователь подключил аккаунты
+                    ArrayList<Account> accounts = user.getAccounts();
+                    if(accounts != null && !user.getAccounts().isEmpty()){
+                        textAds = "Ваши аккаунты и существующие объявления:";
+                        for(Account account : accounts){
+                            System.out.println("На аккаунте " + account.getName() + " следующие обьявления:");
+                            kufar.show_ads(account);
+                        }
+                    }
+
+                    answerShowAds.setText(textAds);
+
+                    try {
+                        execute(answerShowAds);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+
                 break;
             }
         }

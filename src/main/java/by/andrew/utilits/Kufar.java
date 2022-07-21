@@ -14,6 +14,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import java.io.*;
 
@@ -54,6 +56,38 @@ public class Kufar {
         }
 
         return account;
+    }
+
+    public void show_ads(Account account){
+        //запрос на куфар и получение всех обьявлений
+        HttpGet httpGet = new HttpGet(Constants.GET_ALL_ADS);
+        httpGet.addHeader("Accept-Language","ru,ru-RU;q=0.9,en-CA;q=0.8,en-US;q=0.7,en;q=0.6");
+        httpGet.addHeader("accept-encoding", "gzip, deflate, br");
+        httpGet.addHeader("accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+        httpGet.addHeader("User-Agent","Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
+        httpGet.addHeader("Cookie", account.getCookie());
+
+        try {
+            HttpResponse response = httpClient.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            InputStream inputStream = entity.getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+            StringBuilder builder = new StringBuilder();
+            String line = null;
+
+            while ((line = reader.readLine()) != null){
+                builder.append(line);
+            }
+
+            preperAdsFromHtml(builder);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void preperAdsFromHtml(StringBuilder builder){
+        Document document = Jsoup.parse(builder.toString());
+        System.out.println(document.body().toString());
     }
 
     //Получение кук для аккаунта

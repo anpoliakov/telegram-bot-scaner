@@ -49,8 +49,8 @@ public class PreparerKeyboard {
         // Вторая строчка клавиатуры
         KeyboardRow keyboardSecondRow = new KeyboardRow();
         // Добавляем кнопки во вторую строчку клавиатуры
-        keyboardSecondRow.add(new KeyboardButton("Добавить обьявление"));
-        keyboardSecondRow.add(new KeyboardButton("Обьявления"));
+        keyboardSecondRow.add(new KeyboardButton("Добавить объявление"));
+        keyboardSecondRow.add(new KeyboardButton("Объявления"));
 
         // Добавляем все строчки клавиатуры в список
         keyboard.add(keyboardFirstRow);
