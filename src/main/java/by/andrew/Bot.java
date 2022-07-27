@@ -179,9 +179,14 @@ public class Bot extends TelegramLongPollingBot {
                     ArrayList<Account> accounts = user.getAccounts();
                     if(accounts != null && !user.getAccounts().isEmpty()){
                         textAds = "Ваши аккаунты и существующие объявления:";
+                        for (int i = 0; i < accounts.size(); i++){
+
+                        }
+
+                        //TODO доделать обработку и вывод информации об обьявлениях в бот!!
                         for(Account account : accounts){
-                            System.out.println("На аккаунте " + account.getName() + " следующие обьявления:");
-                            kufar.show_ads(account);
+                            answerShowAds.setText("Имя аккаунта: " + account.getName());
+                            answerShowAds.setText("Обьявления: " + kufar.show_ads(account));
                         }
                     }
 

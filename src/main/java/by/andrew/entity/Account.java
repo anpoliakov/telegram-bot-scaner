@@ -2,6 +2,8 @@ package by.andrew.entity;
 
 import org.apache.http.Header;
 
+import java.util.List;
+
 public class Account {
     private String cookie;
     private String login;
@@ -9,6 +11,16 @@ public class Account {
     private String name;
     private String phone;
     private String token;
+
+    public List<Advert> getAdverts() {
+        return adverts;
+    }
+
+    public void setAdverts(List<Advert> adverts) {
+        this.adverts = adverts;
+    }
+
+    private List <Advert> adverts;
 
     public Account(String login, String password) {
         this.login = login;
