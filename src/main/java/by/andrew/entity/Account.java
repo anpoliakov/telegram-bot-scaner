@@ -1,5 +1,7 @@
 package by.andrew.entity;
 
+import org.apache.http.Header;
+
 public class Account {
     private String cookie;
     private String login;
