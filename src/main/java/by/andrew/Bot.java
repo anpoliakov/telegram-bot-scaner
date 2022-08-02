@@ -166,31 +166,30 @@ public class Bot extends TelegramLongPollingBot {
                     }
                 break;
 
+                //показывает обьявления пользователя
                 case SHOW_ADS:
-                    //показывает обьявления пользователя
                     Long id_user = update.getMessage().getFrom().getId();
+                    //получаю пользователя user пользователя (хранит аккаунты и свединья)
                     User user = db.getUserByID(id_user);
 
                     SendMessage answerShowAds = new SendMessage();
                     answerShowAds.setChatId(id_user.toString());
-                    String textAds = "Для работы с объявлениями - подключите аккаунты";
+                    StringBuilder textAds = new StringBuilder("Для работы с объявлениями - подключите аккаунты");
 
                     //Если пользователь подключил аккаунты
                     ArrayList<Account> accounts = user.getAccounts();
                     if(accounts != null && !user.getAccounts().isEmpty()){
-                        textAds = "Ваши аккаунты и существующие объявления:";
-                        for (int i = 0; i < accounts.size(); i++){
-
-                        }
+                        textAds.delete(0,textAds.length());
+                        textAds.append("Ваши аккаунты и существующие объявления:\n");
 
                         //TODO доделать обработку и вывод информации об обьявлениях в бот!!
                         for(Account account : accounts){
-                            answerShowAds.setText("Имя аккаунта: " + account.getName());
-                            answerShowAds.setText("Обьявления: " + kufar.show_ads(account));
+                            textAds.append("Имя аккаунта: " + account.getName()+"\n");
+                            textAds.append("Обьявления: " + kufar.getAllAds(account));
                         }
                     }
 
-                    answerShowAds.setText(textAds);
+                    answerShowAds.setText(textAds.toString());
 
                     try {
                         execute(answerShowAds);

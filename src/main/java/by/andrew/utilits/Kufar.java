@@ -2,6 +2,7 @@ package by.andrew.utilits;
 
 import by.andrew.Constants;
 import by.andrew.entity.Account;
+import by.andrew.entity.Advert;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -20,6 +21,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.*;
+import java.util.List;
 
 //работа с аккаунтом kufar
 public class Kufar {
@@ -120,7 +122,7 @@ public class Kufar {
         }
     }
 
-    public String show_ads(Account account){
+    public List<Advert> getAllAds(Account account){
         //запрос на куфар и получение всех обьявлений
         HttpGet httpGet = new HttpGet(Constants.GET_ALL_ADS);
         httpGet.addHeader("accept-encoding", "gzip, deflate, br");
@@ -143,18 +145,34 @@ public class Kufar {
                 textHtml.append(line);
             }
 
-            ads = preperAdsFromHtml(textHtml);
+            preperAdsFromHtml(textHtml);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return ads;
+        return null;
     }
 
     //вытягивает информацию со страницы
-    private String preperAdsFromHtml(StringBuilder textHtml){
+    private List<Advert> preperAdsFromHtml(StringBuilder textHtml){
         Document document = Jsoup.parse(textHtml.toString());
-        Elements ads = document.getElementsByClass("account_ads__info_block");
-        return ads.text();
+
+        //содержит информацию о всех активных обьявлениях аккаунта
+        Elements ads = document.getElementsByClass("outlined_block account_ads__item account_ads_type_my account_ads_type_activated");
+
+        //обход по всем обьявлениям
+        for(Element e : ads){
+            String name = e.getElementsByClass("account_ads__title").text();
+            String viewAds = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_views").text();
+            String viewNumber = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_views_phone").text();
+            String likes = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_favourites").text();
+
+            //хранит 2 значения
+            Elements adsAdded = e.getElementsByClass("account_ads__count");
+
+            System.out.println("ИМЯ: " + name + ", Просмотры: " + viewAds + ", Просмотры номера: " + viewNumber + ", Понравилось: " + likes);
+            System.out.println("Подано: " + adsAdded.first().text() + ", Истекает: " + adsAdded.last().text());
+        }
+        return null;
     }
 }
