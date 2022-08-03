@@ -17,16 +17,24 @@ import java.util.ArrayList;
 public class Bot extends TelegramLongPollingBot {
     //Содержит текущее состояние бота у пользователя
     private StatusBot CURRENT_STATUS = StatusBot.START;
+
     //Обьект для предоставления меню в зависимости CURRENT_STATE
     private PreparerKeyboard preparerKeyboard = new PreparerKeyboard();
+
     //База данных (в будущем SQL) для хранения всей необходимой информации (пользователи и их аккаунты)
     private DataBase db = DataBase.getInstance();
+
     //Обьект для работы с сайтом kufar
     private Kufar kufar = new Kufar();
+
+    //Содержит ID текущего user
+    private static Long IDUser;
 
     @Override
     public void onUpdateReceived(Update update) {
         if(update.hasMessage()){
+            //TODO: перелопатить код и вставить IDUSER вместе прочего (содаётся отдельный поток для каждого запроса)
+            IDUser = update.getMessage().getFrom().getId();
             determineStatusChatBot(update.getMessage());
             executeByStatus(update);
         }
@@ -200,6 +208,10 @@ public class Bot extends TelegramLongPollingBot {
                 break;
             }
         }
+    }
+
+    public static Long getCurrentIDUser(){
+        return IDUser;
     }
 
     @Override
