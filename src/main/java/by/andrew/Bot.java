@@ -1,6 +1,7 @@
 package by.andrew;
 
 import by.andrew.entity.Account;
+import by.andrew.entity.Advert;
 import by.andrew.entity.User;
 import by.andrew.utilits.Kufar;
 import by.andrew.utilits.PreparerKeyboard;
@@ -13,20 +14,29 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Bot extends TelegramLongPollingBot {
     //Содержит текущее состояние бота у пользователя
     private StatusBot CURRENT_STATUS = StatusBot.START;
+
     //Обьект для предоставления меню в зависимости CURRENT_STATE
     private PreparerKeyboard preparerKeyboard = new PreparerKeyboard();
+
     //База данных (в будущем SQL) для хранения всей необходимой информации (пользователи и их аккаунты)
     private DataBase db = DataBase.getInstance();
+
     //Обьект для работы с сайтом kufar
     private Kufar kufar = new Kufar();
+
+    //Содержит ID текущего user (он же ID чата)
+    private static Long IDUser;
 
     @Override
     public void onUpdateReceived(Update update) {
         if(update.hasMessage()){
+            //TODO: перелопатить код и вставить IDUSER вместе прочего (содаётся отдельный поток для каждого запроса)
+            IDUser = update.getMessage().getFrom().getId();
             determineStatusChatBot(update.getMessage());
             executeByStatus(update);
         }
@@ -42,13 +52,12 @@ public class Bot extends TelegramLongPollingBot {
                 case "/start":
                     CURRENT_STATUS = StatusBot.DEFAULT;
 
-                    Long user_id = message.getFrom().getId();
-                    User user = db.getUserByID(user_id);
+                    User user = db.getUserByID(IDUser);
                     if(user == null){
                         user = new User(message);
-                        db.addUserInDataBase(user);
+                        db.addUser(user);
                     }
-                    System.out.println("/start от: " + db.getUserByID(user_id).toString());
+                    System.out.println("/start от: " + db.getUserByID(IDUser).toString());
                 break;
 
                 case "добавить аккаунт":
@@ -126,15 +135,16 @@ public class Bot extends TelegramLongPollingBot {
                         System.out.println("Введён логин:" + login);
                         System.out.println("Введён пароль:" + password);
 
-                        Kufar kufar = new Kufar();
                         Account account = kufar.login(login, password);
 
                         SendMessage answerStatusAuth = new SendMessage();
-                        answerStatusAuth.setChatId(update.getMessage().getChatId().toString());
+                        answerStatusAuth.setChatId(IDUser.toString());
 
+                        //Если существует такой акк куфар и смогли войти
                         if(account != null){
                             answerStatusAuth.setText(Constants.SUCCESS_AUTH);
-                            db.addAccountForUser(message.getChatId(), account);
+                            User user = db.getUserByID(IDUser);
+                            user.addAccount(account);
                             CURRENT_STATUS = StatusBot.DEFAULT;
                         }else{
                             answerStatusAuth.setText(Constants.ERROR_AUTH);
@@ -166,26 +176,34 @@ public class Bot extends TelegramLongPollingBot {
                     }
                 break;
 
+                //показывает обьявления пользователя
                 case SHOW_ADS:
-                    //показывает обьявления пользователя
-                    Long id_user = update.getMessage().getFrom().getId();
-                    User user = db.getUserByID(id_user);
-
+                    //получаю данные о пользователе бота (ранее входил, еть ли аккаунты?)
+                    User user = db.getUserByID(IDUser);
                     SendMessage answerShowAds = new SendMessage();
-                    answerShowAds.setChatId(id_user.toString());
-                    String textAds = "Для работы с объявлениями - подключите аккаунты";
+                    answerShowAds.setChatId(IDUser.toString());
+                    StringBuilder textAds = new StringBuilder("Для работы с объявлениями - подключите аккаунты");
 
                     //Если пользователь подключил аккаунты
                     ArrayList<Account> accounts = user.getAccounts();
                     if(accounts != null && !user.getAccounts().isEmpty()){
-                        textAds = "Ваши аккаунты и существующие объявления:";
+                        textAds.delete(0,textAds.length());
+                        textAds.append("Ваши аккаунты и существующие объявления:\n");
+
                         for(Account account : accounts){
-                            System.out.println("На аккаунте " + account.getName() + " следующие обьявления:");
-                            kufar.show_ads(account);
+                            List<Advert> adverts = kufar.getAllAds(account);
+                            if(adverts != null && !adverts.isEmpty()){
+                                account.setAdverts(adverts);
+                                textAds.append("Имя аккаунта: " + account.getName()+"\n" + "Обьявления: \n");
+                                for(Advert ads : adverts){
+                                    System.out.println(ads.toString());
+                                }
+                            }
                         }
+
                     }
 
-                    answerShowAds.setText(textAds);
+                    answerShowAds.setText(textAds.toString());
 
                     try {
                         execute(answerShowAds);
@@ -196,6 +214,10 @@ public class Bot extends TelegramLongPollingBot {
                 break;
             }
         }
+    }
+
+    public static Long getCurrentIDUser(){
+        return IDUser;
     }
 
     @Override

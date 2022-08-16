@@ -26,19 +26,7 @@ public class DataBase {
         return dataBaseUsers.get(user_id);
     }
 
-    public void addUserInDataBase(User user){
+    public void addUser(User user){
         dataBaseUsers.put(user.getUser_id(), user);
-    }
-
-    public boolean addAccountForUser(Long id_user, Account account){
-        boolean flag = false;
-        if(dataBaseUsers.containsKey(id_user)){
-            User user = dataBaseUsers.get(id_user);
-            user.addAccount(account);
-            dataBaseUsers.replace(id_user,user);
-            flag = true;
-        }
-
-        return flag;
     }
 }

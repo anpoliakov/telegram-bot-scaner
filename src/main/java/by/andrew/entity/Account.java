@@ -1,6 +1,8 @@
 package by.andrew.entity;
 
-import org.apache.http.Header;
+import by.andrew.utilits.Kufar;
+
+import java.util.List;
 
 public class Account {
     private String cookie;
@@ -9,10 +11,20 @@ public class Account {
     private String name;
     private String phone;
     private String token;
+    private List <Advert> adverts;
+
+    public List<Advert> getAdverts() {
+        return adverts;
+    }
+
+    public void setAdverts(List<Advert> adverts) {
+        this.adverts = adverts;
+    }
 
     public Account(String login, String password) {
         this.login = login;
         this.password = password;
+
     }
 
     public String getCookie() {

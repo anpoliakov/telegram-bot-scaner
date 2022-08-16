@@ -2,6 +2,7 @@ package by.andrew.utilits;
 
 import by.andrew.Constants;
 import by.andrew.entity.Account;
+import by.andrew.entity.Advert;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -16,17 +17,22 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 //работа с аккаунтом kufar
 public class Kufar {
     private CloseableHttpClient httpClient = HttpClients.createDefault();
+    private Account account = null;
+
 
     //ВХОД в аккаунт
     public Account login(String login, String password){
         HttpPost httpPost = new HttpPost(Constants.AUTH);
-        Account account = null;
 
         try {
             StringEntity params =
@@ -45,7 +51,7 @@ public class Kufar {
             if(response.getStatusLine().getStatusCode() == 200){
                 account = new Account(login,password);
                 setCookie(account,response);
-                getInformationAccount(account);
+                setInformationAboutAccount(account);
 
             }else if (response.getStatusLine().getStatusCode() >= 300 && response.getStatusLine().getStatusCode() < 400){
                 System.err.println("Ошибка входа на стороне клиента");
@@ -62,7 +68,7 @@ public class Kufar {
         return account;
     }
 
-    //УСТАНАВЛИВАЕМ куки для дальнейшей работы с аккаунтом
+    //УСТАНАВЛИВАЕМ в обьект Account куки для дальнейшей работы с аккаунтом
     private void setCookie(Account account, HttpResponse response){
         Header[] headers = response.getHeaders("Set-Cookie");
         StringBuilder builder = new StringBuilder();
@@ -75,43 +81,8 @@ public class Kufar {
         account.setCookie(builder.toString());
     }
 
-    public void show_ads(Account account){
-        //запрос на куфар и получение всех обьявлений
-        HttpGet httpGet = new HttpGet(Constants.GET_ALL_ADS);
-        httpGet.addHeader("accept-encoding", "gzip, deflate, br");
-        httpGet.addHeader("User-Agent","Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
-        httpGet.addHeader("Connection","keep-alive");
-        httpGet.addHeader("Cookie", account.getCookie());
-
-
-        System.out.println("КУКИ: " + account.getCookie());
-
-        try {
-            HttpResponse response = httpClient.execute(httpGet);
-            HttpEntity entity = response.getEntity();
-            InputStream inputStream = entity.getContent();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
-            StringBuilder builder = new StringBuilder();
-            String line = null;
-
-            while ((line = reader.readLine()) != null){
-                builder.append(line);
-            }
-
-            preperAdsFromHtml(builder);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    //вытягивает информацию со страницы
-    private void preperAdsFromHtml(StringBuilder builder){
-        Document document = Jsoup.parse(builder.toString());
-        System.out.println(document.body().toString());
-    }
-
-    //Получение пользовательской информации об куфар-аккаунте
-    private void getInformationAccount(Account account){
+    //УСТАНАВЛИВАЕМ в обьект Account всю доступную информацию из аккаунта куфар
+    private void setInformationAboutAccount(Account account){
         String responseJson = null;
 
         HttpGet httpGet = new HttpGet(Constants.ACCAUNT_INFO);
@@ -151,5 +122,63 @@ public class Kufar {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<Advert> getAllAds(Account account){
+        //запрос на куфар и получение всех обьявлений
+        HttpGet httpGet = new HttpGet(Constants.GET_ALL_ADS);
+        httpGet.addHeader("accept-encoding", "gzip, deflate, br");
+        httpGet.addHeader("User-Agent","Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
+        httpGet.addHeader("Connection","keep-alive");
+        httpGet.addHeader("Cookie", account.getCookie());
+
+        StringBuilder textHtml = null;
+        String ads = null;
+
+        try {
+            HttpResponse response = httpClient.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            InputStream inputStream = entity.getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+            textHtml = new StringBuilder();
+            String line = null;
+
+            while ((line = reader.readLine()) != null){
+                textHtml.append(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return preperAdsFromHtml(textHtml);
+    }
+
+    //вытягивает информацию со страницы
+    private List<Advert> preperAdsFromHtml(StringBuilder textHtml){
+        Document document = Jsoup.parse(textHtml.toString());
+        List <Advert> adverts = new ArrayList<>();
+
+        //содержит информацию о всех активных обьявлениях аккаунта
+        Elements ads = document.getElementsByClass("outlined_block account_ads__item account_ads_type_my account_ads_type_activated");
+
+        //обход по всем обьявлениям
+        for(Element e : ads){
+            //получаем текстовую информацию об объявлении
+            String name = e.getElementsByClass("account_ads__title").text();
+            String viewAds = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_views").text();
+            String viewNumber = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_views_phone").text();
+            String likes = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_favourites").text();
+
+            //хранит 2 значения (1 - это дата размещения, 2 - когда объявление истечёт)
+            Elements adsAdded = e.getElementsByClass("account_ads__count");
+            String dateSubmitted = adsAdded.first().text();
+            String dateExpire = adsAdded.last().text();
+
+            Advert advert = new Advert(name, Integer.valueOf(viewAds), Integer.valueOf(viewNumber), Integer.valueOf(likes), dateSubmitted, dateExpire);
+            adverts.add(advert);
+        }
+
+        return adverts;
     }
 }
