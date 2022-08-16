@@ -1,6 +1,7 @@
 package by.andrew;
 
 import by.andrew.entity.Account;
+import by.andrew.entity.Advert;
 import by.andrew.entity.User;
 import by.andrew.utilits.Kufar;
 import by.andrew.utilits.PreparerKeyboard;
@@ -13,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Bot extends TelegramLongPollingBot {
     //Содержит текущее состояние бота у пользователя
@@ -27,7 +29,7 @@ public class Bot extends TelegramLongPollingBot {
     //Обьект для работы с сайтом kufar
     private Kufar kufar = new Kufar();
 
-    //Содержит ID текущего user
+    //Содержит ID текущего user (он же ID чата)
     private static Long IDUser;
 
     @Override
@@ -50,13 +52,12 @@ public class Bot extends TelegramLongPollingBot {
                 case "/start":
                     CURRENT_STATUS = StatusBot.DEFAULT;
 
-                    Long user_id = message.getFrom().getId();
-                    User user = db.getUserByID(user_id);
+                    User user = db.getUserByID(IDUser);
                     if(user == null){
                         user = new User(message);
-                        db.addUserInDataBase(user);
+                        db.addUser(user);
                     }
-                    System.out.println("/start от: " + db.getUserByID(user_id).toString());
+                    System.out.println("/start от: " + db.getUserByID(IDUser).toString());
                 break;
 
                 case "добавить аккаунт":
@@ -134,15 +135,16 @@ public class Bot extends TelegramLongPollingBot {
                         System.out.println("Введён логин:" + login);
                         System.out.println("Введён пароль:" + password);
 
-                        Kufar kufar = new Kufar();
                         Account account = kufar.login(login, password);
 
                         SendMessage answerStatusAuth = new SendMessage();
-                        answerStatusAuth.setChatId(update.getMessage().getChatId().toString());
+                        answerStatusAuth.setChatId(IDUser.toString());
 
+                        //Если существует такой акк куфар и смогли войти
                         if(account != null){
                             answerStatusAuth.setText(Constants.SUCCESS_AUTH);
-                            db.addAccountForUser(message.getChatId(), account);
+                            User user = db.getUserByID(IDUser);
+                            user.addAccount(account);
                             CURRENT_STATUS = StatusBot.DEFAULT;
                         }else{
                             answerStatusAuth.setText(Constants.ERROR_AUTH);
@@ -176,12 +178,10 @@ public class Bot extends TelegramLongPollingBot {
 
                 //показывает обьявления пользователя
                 case SHOW_ADS:
-                    Long id_user = update.getMessage().getFrom().getId();
-                    //получаю пользователя user пользователя (хранит аккаунты и свединья)
-                    User user = db.getUserByID(id_user);
-
+                    //получаю данные о пользователе бота (ранее входил, еть ли аккаунты?)
+                    User user = db.getUserByID(IDUser);
                     SendMessage answerShowAds = new SendMessage();
-                    answerShowAds.setChatId(id_user.toString());
+                    answerShowAds.setChatId(IDUser.toString());
                     StringBuilder textAds = new StringBuilder("Для работы с объявлениями - подключите аккаунты");
 
                     //Если пользователь подключил аккаунты
@@ -190,11 +190,17 @@ public class Bot extends TelegramLongPollingBot {
                         textAds.delete(0,textAds.length());
                         textAds.append("Ваши аккаунты и существующие объявления:\n");
 
-                        //TODO доделать обработку и вывод информации об обьявлениях в бот!!
                         for(Account account : accounts){
-                            textAds.append("Имя аккаунта: " + account.getName()+"\n");
-                            textAds.append("Обьявления: " + kufar.getAllAds(account));
+                            List<Advert> adverts = kufar.getAllAds(account);
+                            if(adverts != null && !adverts.isEmpty()){
+                                account.setAdverts(adverts);
+                                textAds.append("Имя аккаунта: " + account.getName()+"\n" + "Обьявления: \n");
+                                for(Advert ads : adverts){
+                                    System.out.println(ads.toString());
+                                }
+                            }
                         }
+
                     }
 
                     answerShowAds.setText(textAds.toString());

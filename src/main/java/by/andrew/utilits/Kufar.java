@@ -21,16 +21,18 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 //работа с аккаунтом kufar
 public class Kufar {
     private CloseableHttpClient httpClient = HttpClients.createDefault();
+    private Account account = null;
+
 
     //ВХОД в аккаунт
     public Account login(String login, String password){
         HttpPost httpPost = new HttpPost(Constants.AUTH);
-        Account account = null;
 
         try {
             StringEntity params =
@@ -145,34 +147,38 @@ public class Kufar {
                 textHtml.append(line);
             }
 
-            preperAdsFromHtml(textHtml);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return null;
+        return preperAdsFromHtml(textHtml);
     }
 
     //вытягивает информацию со страницы
     private List<Advert> preperAdsFromHtml(StringBuilder textHtml){
         Document document = Jsoup.parse(textHtml.toString());
+        List <Advert> adverts = new ArrayList<>();
 
         //содержит информацию о всех активных обьявлениях аккаунта
         Elements ads = document.getElementsByClass("outlined_block account_ads__item account_ads_type_my account_ads_type_activated");
 
         //обход по всем обьявлениям
         for(Element e : ads){
+            //получаем текстовую информацию об объявлении
             String name = e.getElementsByClass("account_ads__title").text();
             String viewAds = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_views").text();
             String viewNumber = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_views_phone").text();
             String likes = e.getElementsByClass("account_ads__stat_item account_ads__stat_item_type_favourites").text();
 
-            //хранит 2 значения
+            //хранит 2 значения (1 - это дата размещения, 2 - когда объявление истечёт)
             Elements adsAdded = e.getElementsByClass("account_ads__count");
+            String dateSubmitted = adsAdded.first().text();
+            String dateExpire = adsAdded.last().text();
 
-            System.out.println("ИМЯ: " + name + ", Просмотры: " + viewAds + ", Просмотры номера: " + viewNumber + ", Понравилось: " + likes);
-            System.out.println("Подано: " + adsAdded.first().text() + ", Истекает: " + adsAdded.last().text());
+            Advert advert = new Advert(name, Integer.valueOf(viewAds), Integer.valueOf(viewNumber), Integer.valueOf(likes), dateSubmitted, dateExpire);
+            adverts.add(advert);
         }
-        return null;
+
+        return adverts;
     }
 }

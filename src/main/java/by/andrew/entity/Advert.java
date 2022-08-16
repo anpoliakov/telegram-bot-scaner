@@ -7,10 +7,10 @@ public class Advert {
     private int CounterView;
     private int CounterShowNumber;
     private int CounterLikes;
-    private Date adsSubmitted;
-    private Date adsWillExpire;
+    private String adsSubmitted;
+    private String adsWillExpire;
 
-    public Advert(String nameAds, int counterView, int counterShowNumber, int counterLikes, Date adsSubmitted, Date adsWillExpire) {
+    public Advert(String nameAds, int counterView, int counterShowNumber, int counterLikes, String adsSubmitted, String adsWillExpire) {
         this.nameAds = nameAds;
         CounterView = counterView;
         CounterShowNumber = counterShowNumber;
@@ -61,19 +61,19 @@ public class Advert {
         CounterLikes = counterLikes;
     }
 
-    public Date getAdsSubmitted() {
+    public String getAdsSubmitted() {
         return adsSubmitted;
     }
 
-    public void setAdsSubmitted(Date adsSubmitted) {
+    public void setAdsSubmitted(String adsSubmitted) {
         this.adsSubmitted = adsSubmitted;
     }
 
-    public Date getAdsWillExpire() {
+    public String getAdsWillExpire() {
         return adsWillExpire;
     }
 
-    public void setAdsWillExpire(Date adsWillExpire) {
+    public void setAdsWillExpire(String adsWillExpire) {
         this.adsWillExpire = adsWillExpire;
     }
 }
